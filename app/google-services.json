@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "990007978742",
+    "firebase_url": "https://seasameopen.firebaseio.com",
+    "project_id": "seasameopen",
+    "storage_bucket": "seasameopen.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:990007978742:android:8ade8077b45fc499",
+        "android_client_info": {
+          "package_name": "com.netanya.hidayeichler.seasameopen"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "990007978742-h0gbn0pd353jdc0ufg1pgfjufi4a8h37.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.netanya.hidayeichler.seasameopen",
+            "certificate_hash": "ac8295f1634aeddefb95ecd585e0b30acd25c311"
+          }
+        },
+        {
+          "client_id": "990007978742-j2pfaq9nd7i5bea9nmh45i93sh7bmk9e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCD0GQVQP-Pwg9TwgCWmm45t0AVxCsz3tc"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "990007978742-j2pfaq9nd7i5bea9nmh45i93sh7bmk9e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
