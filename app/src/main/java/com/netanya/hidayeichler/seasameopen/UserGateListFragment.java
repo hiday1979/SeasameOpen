@@ -11,10 +11,10 @@ import android.view.ViewGroup;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class HalloFragment extends Fragment {
+public class UserGateListFragment extends Fragment {
 
 
-    public HalloFragment() {
+    public UserGateListFragment() {
         // Required empty public constructor
     }
 
@@ -23,7 +23,7 @@ public class HalloFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_hallo, container, false);
+        return inflater.inflate(R.layout.fragment_user_gate_list, container, false);
     }
 
 }

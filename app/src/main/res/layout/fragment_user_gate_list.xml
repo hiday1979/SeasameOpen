@@ -2,13 +2,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/halloFragment"
-    tools:context="com.netanya.hidayeichler.seasameopen.HalloFragment">
+    tools:context="com.netanya.hidayeichler.seasameopen.UserGateListFragment">
 
     <!-- TODO: Update blank fragment layout -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:fontFamily="cursive"
+        android:gravity="center"
+        android:text="Hello you should add same gates to your list "
+        android:textSize="30sp"
+        android:padding="16dp"
+        android:textStyle="bold" />
 
 </FrameLayout>

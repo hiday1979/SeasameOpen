@@ -60,6 +60,5 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng myLastLocation = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
         mMap.addMarker(new MarkerOptions().position(myLastLocation).title("My location"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(myLastLocation));
-        mMap.getMaxZoomLevel();
     }
 }

@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.netanya.hidayeichler.seasameopen.MainActivity"
+    android:background="@drawable/background"
     tools:showIn="@layout/app_bar_main">
 
     <LinearLayout
@@ -29,7 +30,6 @@
         android:layout_marginRight="0dp">
 
         <android.support.constraint.ConstraintLayout
-            android:background="#00FF00"
             android:id="@+id/topContainer"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -41,7 +41,6 @@
         <android.support.constraint.ConstraintLayout
             android:id="@+id/bottomContainer"
             android:layout_weight="1"
-            android:background="#ff0000"
             android:layout_width="match_parent"
             android:layout_height="0dp">
 

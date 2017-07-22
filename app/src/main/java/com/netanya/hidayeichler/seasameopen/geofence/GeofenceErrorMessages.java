@@ -1,10 +1,11 @@
-package com.netanya.hidayeichler.seasameopen;
+package com.netanya.hidayeichler.seasameopen.geofence;
 
 import android.content.Context;
 import android.content.res.Resources;
 
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.location.GeofenceStatusCodes;
+import com.netanya.hidayeichler.seasameopen.R;
 
 /**
  * Created by hidayeichler on 04/07/2017.
