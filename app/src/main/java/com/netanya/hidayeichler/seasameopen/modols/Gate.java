@@ -12,7 +12,7 @@ public class Gate implements Parcelable {
 
     private double lat;
     private double lang;
-    private int distance;
+    private float distance;
     private String phone;
     private String name;
     private String showName;

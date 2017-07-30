@@ -14,20 +14,29 @@ import android.util.Log;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.netanya.hidayeichler.seasameopen.MainActivity;
 import com.netanya.hidayeichler.seasameopen.R;
-import com.netanya.hidayeichler.seasameopen.geofence.GeofenceErrorMessages;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by hidayeichler on 04/07/2017.
+ * Listener for geofence transition changes.
+ *
+ * Receives geofence transition events from Location Services in the form of an Intent containing
+ * the transition type and geofence id(s) that triggered the transition. Creates a notification
+ * as the output.
  */
-
 public class GeofenceTransitionsIntentService extends IntentService {
 
     private static final String TAG = "GeofenceTransitionsIS";
+    private String tel;
+    private String triggeringGeofencesIdsString;
 
     /**
      * This constructor is required, and calls the super IntentService(String)
@@ -63,6 +72,7 @@ public class GeofenceTransitionsIntentService extends IntentService {
             // Get the geofences that were triggered. A single event can trigger multiple geofences.
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
 
+
             // Get the transition details as a String.
             String geofenceTransitionDetails = getGeofenceTransitionDetails(geofenceTransition,
                     triggeringGeofences);
@@ -84,17 +94,35 @@ public class GeofenceTransitionsIntentService extends IntentService {
      * @return                      The transition details formatted as String.
      */
     private String getGeofenceTransitionDetails(
-            int geofenceTransition,
-            List<Geofence> triggeringGeofences) {
+            final int geofenceTransition,
+            final List<Geofence> triggeringGeofences) {
 
-        String geofenceTransitionString = getTransitionString(geofenceTransition);
+        final String geofenceTransitionString = getTransitionString(geofenceTransition);
+        FirebaseDatabase.getInstance().getReference("UserGatesList")
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid().toString())
+                .addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
+//                    if (postSnapshot.getKey() == triggeringGeofencesIdsString)
+//                    tel = postSnapshot.child("phone").getValue().toString();
+                    tel = triggeringGeofencesIdsString;
+
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
         // Get the Ids of each geofence that was triggered.
         ArrayList<String> triggeringGeofencesIdsList = new ArrayList<>();
         for (Geofence geofence : triggeringGeofences) {
             triggeringGeofencesIdsList.add(geofence.getRequestId());
         }
-        String triggeringGeofencesIdsString = TextUtils.join(", ",  triggeringGeofencesIdsList);
+        triggeringGeofencesIdsString = triggeringGeofencesIdsList.get(0);  //TextUtils.join(", ",  triggeringGeofencesIdsList);
 
         return geofenceTransitionString + ": " + triggeringGeofencesIdsString;
     }
@@ -128,9 +156,9 @@ public class GeofenceTransitionsIntentService extends IntentService {
                 // In a real app, you may want to use a library like Volley
                 // to decode the Bitmap.
                 .setLargeIcon(BitmapFactory.decodeResource(getResources(),
-                        R.drawable.ic_menu_camera))
+                        R.drawable.ic_add))
                 .setColor(Color.RED)
-                .setContentTitle(notificationDetails)
+                .setContentTitle(tel)
                 .setContentText(getString(R.string.geofence_transition_notification_text))
                 .setContentIntent(notificationPendingIntent);
 

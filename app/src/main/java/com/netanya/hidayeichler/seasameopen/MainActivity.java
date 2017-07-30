@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -16,6 +17,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -45,6 +47,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 import com.netanya.hidayeichler.seasameopen.geofence.GeofenceErrorMessages;
 import com.netanya.hidayeichler.seasameopen.geofence.GeofenceTransitionsIntentService;
@@ -55,10 +58,12 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnCompleteListener<Void>, OnMapReadyCallback {
+        implements NavigationView.OnNavigationItemSelectedListener, OnCompleteListener<Void>,
+        OnMapReadyCallback {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 34;
+
     private enum PendingGeofenceTask {ADD, REMOVE, NONE}
 
     private GeofencingClient mGeofencingClient;
@@ -67,7 +72,8 @@ public class MainActivity extends AppCompatActivity
     private PendingGeofenceTask mPendingGeofenceTask = PendingGeofenceTask.NONE;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-    private List<Gate> gateList;
+    private String uid;
+
 
 
     @Override
@@ -103,19 +109,22 @@ public class MainActivity extends AppCompatActivity
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                if (firebaseAuth.getCurrentUser() == null) {
+                if (firebaseAuth.equals(null) || firebaseAuth.getCurrentUser() == null) {
                     Intent intent = new Intent(MainActivity.this, SignInActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
                 } else {
-                    chackIfUserHaveGatesList();
+                    //___________________Geofence_____________________
+                    initWithUser();
                 }
             }
         };
 
 
-        //___________________Geofence_____________________
 
+    }
+
+    private void initWithUser() {
 
         // Empty list for storing geofences.
         mGeofenceList = new ArrayList<>();
@@ -129,15 +138,16 @@ public class MainActivity extends AppCompatActivity
 
         mGeofencingClient = LocationServices.getGeofencingClient(this);
 
-        addGeofencesButtonHandler();
+//        addGeofencesButtonHandler();
+
+        chackIfUserHaveGatesList();
 
         //populetGateList__________________________________________________
 
 //        FirebaseDatabase database = FirebaseDatabase.getInstance();
 //        DatabaseReference myRef = database.getReference("Gates");
-//        Gate g = new Gate(32.1501963, 35.1087643 ,200, "0543063921", "nofim", "Nofim");
-//                 //
-//                //new Gate(32.1932321, 34.9529492 ,200, "0543063923", "nirEliyahuEast", "Nir Eliyahu East");
+//        Gate g = new Gate(32.2956431,34.8763702 ,200, "0509614038", "home", "Home");
+//
 //        myRef.child(g.getName()).setValue(g);
     }
 
@@ -150,7 +160,7 @@ public class MainActivity extends AppCompatActivity
             super.onBackPressed();
         }
 
-        addGeofencesButtonHandler();
+        addGeofences();
     }
 
     @Override
@@ -236,14 +246,14 @@ public class MainActivity extends AppCompatActivity
      * Adds geofences, which sets alerts to be notified when the device enters or exits one of the
      * specified geofences. Handles the success or failure results returned by addGeofences().
      */
-    public void addGeofencesButtonHandler() {
-        if (!checkPermissions()) {
-            mPendingGeofenceTask = PendingGeofenceTask.ADD;
-            requestPermissions();
-            return;
-        }
-        addGeofences();
-    }
+//    public void addGeofencesButtonHandler() {
+//        if (!checkPermissions()) {
+//            mPendingGeofenceTask = PendingGeofenceTask.ADD;
+//            requestPermissions();
+//            return;
+//        }
+//        addGeofences();
+//    }
 
     /**
      * Adds geofences. This method should be called after the user has granted the location
@@ -266,14 +276,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void removeGeofencesButtonHandler(View view) {
-        if (!checkPermissions()) {
-            mPendingGeofenceTask = PendingGeofenceTask.REMOVE;
-            requestPermissions();
-            return;
-        }
-        removeGeofences();
-    }
 
     /**
      * Removes geofences. This method should be called after the user has granted the location
@@ -323,7 +325,10 @@ public class MainActivity extends AppCompatActivity
         if (mGeofencePendingIntent != null) {
             return mGeofencePendingIntent;
         }
+
         Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
+        intent.putExtra("uid",uid);
+//        intent.putExtra("number", )
         // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when calling
         // addGeofences() and removeGeofences().
         return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -334,6 +339,35 @@ public class MainActivity extends AppCompatActivity
      * the user's location.
      */
     private void populateGeofenceList() {
+
+
+        FirebaseDatabase.getInstance().getReference("UserGatesList")
+                .child(mAuth.getCurrentUser().getUid().toString()).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
+                    Double lang = Double.valueOf(postSnapshot.child("lang").getValue().toString());
+                    Double lat = Double.valueOf(postSnapshot.child("lat").getValue().toString());
+                    Float distance = Float.valueOf(postSnapshot.child("distance").getValue().toString());
+                    Geofence geofence = new Geofence.Builder().setRequestId(postSnapshot.child("name").getValue().toString())
+                            .setCircularRegion(lat, lang, distance)
+                            .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                            .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
+                                    Geofence.GEOFENCE_TRANSITION_EXIT)
+                            .build();
+                    mGeofenceList.add(geofence);
+                   uid = FirebaseAuth.getInstance().getCurrentUser().getUid().toString();
+
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
         for (Map.Entry<String, LatLng> entry : Constants.BAY_AREA_LANDMARKS.entrySet()) {
 
             mGeofenceList.add(new Geofence.Builder()
@@ -514,51 +548,41 @@ public class MainActivity extends AppCompatActivity
 
 
     public void chackIfUserHaveGatesList(){
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        String uid = user.getUid();
-        DatabaseReference userId = FirebaseDatabase.getInstance().getReference("Users").child(uid);
-        userId.addListenerForSingleValueEvent(new ValueEventListener() {
+
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable(){
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                if (snapshot.hasChildren()) {
-                    getSupportFragmentManager().
-                            beginTransaction().
-                            replace(R.id.bottomContainer, new GateListFragment()).
-                            commit();
+            public void run() {
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                String uid = user.getUid();
+                DatabaseReference userId = FirebaseDatabase.getInstance().getReference("UserGatesList").child(uid);
+                userId.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        if (snapshot.hasChildren()) {
+                            getSupportFragmentManager().
+                                    beginTransaction().
+                                    replace(R.id.bottomContainer, new UserGateListFragment()).
+                                    commit();
 
-                }else {
-                    getSupportFragmentManager().
-                            beginTransaction().
-                            replace(R.id.bottomContainer, new UserGateListFragment()).
-                            commit();
-                }
-            }
+                        }else {
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                            getSupportFragmentManager().
+                                    beginTransaction().
+                                    replace(R.id.bottomContainer, new NoGateFragment()).
+                                    commit();
+                        }
+                    }
 
-            }
-        });
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+                }}, 4000);
+
     }
 
-    public void onClickaddGateToUserList(View view, Gate modol) {
-        TextView v = (TextView) findViewById(R.id.tvGateName);
-        String s = v.getText().toString();
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Gates").child(s);
-        reference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Gate gate = dataSnapshot.getValue(Gate.class);
-                gateList.add(gate);
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }
 
 }
 

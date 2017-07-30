@@ -1,12 +1,20 @@
 package com.netanya.hidayeichler.seasameopen;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.IdRes;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentContainer;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -23,9 +31,13 @@ import com.bumptech.glide.Glide;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.netanya.hidayeichler.seasameopen.modols.Gate;
 
 import butterknife.BindView;
@@ -37,6 +49,8 @@ public class GateListFragment extends Fragment {
     @BindView(R.id.rvGateList)
     RecyclerView rvUserLists;
     Unbinder unbinder;
+    String s;
+
 
     public GateListFragment() {
         // Required empty public constructor
@@ -63,6 +77,8 @@ public class GateListFragment extends Fragment {
 
     }
 
+
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -72,51 +88,88 @@ public class GateListFragment extends Fragment {
     //2)FirebaseRecyclerAdapter
     public static class GateListAdapter extends FirebaseRecyclerAdapter<Gate, GateListAdapter.GateListViewHolder> {
         Fragment fragment;
+        Context context;
+        private String gateName = null;
+        AlertDialog n;
+
 
         public GateListAdapter(Query query, Fragment fragment) {
             super(Gate.class, R.layout.gate_list_item, GateListViewHolder.class, query);
             this.fragment = fragment;
         }
 
+
         @Override
         public GateListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             GateListViewHolder vh =  super.onCreateViewHolder(parent, viewType);
             vh.gateListFragment = fragment;
+            context = parent.getContext();
             return vh;
         }
 
         @Override
-        protected void populateViewHolder(GateListViewHolder viewHolder, Gate model, int position) {
+        protected void populateViewHolder(final GateListViewHolder viewHolder, final Gate model, final int position) {
             viewHolder.tvGateName.setText(model.getName());
+            viewHolder.btnAddGate.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    gateName = viewHolder.tvGateName.getText().toString();
+                    String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    DatabaseReference userList = FirebaseDatabase.getInstance().getReference("UserGatesList").child(uid).child(gateName);
+                    userList.setValue(model);
+                    n = new AlertDialog.Builder(context)
+                            .setTitle("Gate added")
+                            .setMessage("You have added gate" + gateName + "to your list")
+                            .setPositiveButton("Add antehr..", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    n.dismiss();
+                                }
+                            }).setCancelable(false)
+                            .setNegativeButton("Done", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    n.dismiss();
+
+                                }
+                            })
+                            .create();
+                    n.show();
+                }
+            });
             viewHolder.model = model;
+
+
         }
 
             //1)ViewHolder
             public static class GateListViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
+
                 //Properties:
                 ImageView ivGateProfile;
                 TextView tvGateName;
-                Button btnDeleteGate;
+                Button btnAddGate;
                 Fragment gateListFragment;
                 Gate model;
 
                 //Constructor:
                 public GateListViewHolder(View itemView) {
                     super(itemView);
-                    ivGateProfile = (ImageView) itemView.findViewById(R.id.ivGateProfile);
-                    tvGateName = (TextView) itemView.findViewById(R.id.tvGateName);
-                    btnDeleteGate = (Button) itemView.findViewById(R.id.btnDeleteGate);
-                    btnDeleteGate.setOnClickListener(this);
+                    ivGateProfile = (ImageView) this.itemView.findViewById(R.id.ivGateProfile);
+                    tvGateName = (TextView) this.itemView.findViewById(R.id.tvGateName);
+                    btnAddGate = (Button) this.itemView.findViewById(R.id.btnAddGate);
                     itemView.setOnClickListener(this);
                 }
 
                 @Override
                 public void onClick(View v) {
-                    if (v == btnDeleteGate) {
+                    if (v == btnAddGate) {
                         try {
-                            //TODO make a dialig
-                        } catch (Exception e) {
+                            int adapterPosition = getAdapterPosition();
+
+                        }
+                        catch (Exception e) {
                             e.printStackTrace();
                         }
                     }

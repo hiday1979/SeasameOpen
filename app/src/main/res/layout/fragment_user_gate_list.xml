@@ -1,18 +1,18 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.netanya.hidayeichler.seasameopen.UserGateListFragment">
 
     <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fontFamily="cursive"
-        android:gravity="center"
-        android:text="Hello you should add same gates to your list "
-        android:textSize="30sp"
-        android:padding="16dp"
-        android:textStyle="bold" />
 
-</FrameLayout>
+    <android.support.v7.widget.RecyclerView
+        android:background="@color/transparent"
+        android:id="@+id/rvUserGateList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </android.support.v7.widget.RecyclerView>
+
+</LinearLayout>

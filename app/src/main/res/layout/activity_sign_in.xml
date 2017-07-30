@@ -16,6 +16,8 @@
         android:ems="10"
         android:hint="Name?"
         android:inputType="textPersonName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/btnSignIn"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toLeftOf="@+id/btnSignIn"
         app:layout_constraintTop_toTopOf="parent"
