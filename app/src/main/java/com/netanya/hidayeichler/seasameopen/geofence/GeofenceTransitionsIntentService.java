@@ -17,6 +17,7 @@ import com.google.android.gms.location.GeofencingEvent;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.netanya.hidayeichler.seasameopen.MainActivity;
@@ -35,8 +36,8 @@ import java.util.List;
 public class GeofenceTransitionsIntentService extends IntentService {
 
     private static final String TAG = "GeofenceTransitionsIS";
-    private String tel;
-    private String triggeringGeofencesIdsString;
+    private List<String> phones;
+    private List<String> nameId;
 
     /**
      * This constructor is required, and calls the super IntentService(String)
@@ -72,10 +73,29 @@ public class GeofenceTransitionsIntentService extends IntentService {
             // Get the geofences that were triggered. A single event can trigger multiple geofences.
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
 
-
             // Get the transition details as a String.
             String geofenceTransitionDetails = getGeofenceTransitionDetails(geofenceTransition,
                     triggeringGeofences);
+            //_________________________________
+
+            ValueEventListener eventListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    nameId.add(dataSnapshot.getKey());
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            };
+
+            DatabaseReference userGatesList = FirebaseDatabase.getInstance().getReference("UserGatesList")
+                    .child(FirebaseAuth.getInstance().getCurrentUser().getUid().toString());
+            userGatesList.addValueEventListener(eventListener);
+
+
+            //_________________________________
 
             // Send notification and log the transition details.
             sendNotification(geofenceTransitionDetails);
@@ -94,35 +114,17 @@ public class GeofenceTransitionsIntentService extends IntentService {
      * @return                      The transition details formatted as String.
      */
     private String getGeofenceTransitionDetails(
-            final int geofenceTransition,
-            final List<Geofence> triggeringGeofences) {
+            int geofenceTransition,
+            List<Geofence> triggeringGeofences) {
 
-        final String geofenceTransitionString = getTransitionString(geofenceTransition);
-        FirebaseDatabase.getInstance().getReference("UserGatesList")
-                .child(FirebaseAuth.getInstance().getCurrentUser().getUid().toString())
-                .addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot postSnapshot: dataSnapshot.getChildren()) {
-//                    if (postSnapshot.getKey() == triggeringGeofencesIdsString)
-//                    tel = postSnapshot.child("phone").getValue().toString();
-                    tel = triggeringGeofencesIdsString;
-
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+        String geofenceTransitionString = getTransitionString(geofenceTransition);
 
         // Get the Ids of each geofence that was triggered.
         ArrayList<String> triggeringGeofencesIdsList = new ArrayList<>();
         for (Geofence geofence : triggeringGeofences) {
             triggeringGeofencesIdsList.add(geofence.getRequestId());
         }
-        triggeringGeofencesIdsString = triggeringGeofencesIdsList.get(0);  //TextUtils.join(", ",  triggeringGeofencesIdsList);
+        String triggeringGeofencesIdsString = TextUtils.join(", ",  triggeringGeofencesIdsList);
 
         return geofenceTransitionString + ": " + triggeringGeofencesIdsString;
     }
@@ -158,7 +160,7 @@ public class GeofenceTransitionsIntentService extends IntentService {
                 .setLargeIcon(BitmapFactory.decodeResource(getResources(),
                         R.drawable.ic_add))
                 .setColor(Color.RED)
-                .setContentTitle(tel)
+                .setContentTitle(notificationDetails)
                 .setContentText(getString(R.string.geofence_transition_notification_text))
                 .setContentIntent(notificationPendingIntent);
 

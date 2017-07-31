@@ -90,6 +90,7 @@ public class MainActivity extends AppCompatActivity
                 getSupportFragmentManager().
                         beginTransaction().
                         replace(R.id.mainContainer, new GateListFragment()).
+                        addToBackStack("GateListFragment").
                         commit();
             }
         });
@@ -144,11 +145,11 @@ public class MainActivity extends AppCompatActivity
 
         //populetGateList__________________________________________________
 
-//        FirebaseDatabase database = FirebaseDatabase.getInstance();
-//        DatabaseReference myRef = database.getReference("Gates");
-//        Gate g = new Gate(32.2956431,34.8763702 ,200, "0509614038", "home", "Home");
-//
-//        myRef.child(g.getName()).setValue(g);
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("Gates");
+        Gate g = new Gate(32.0847061,34.8011774 ,2000, "0509614038", "HacerU", "HacerU");
+
+        myRef.child(g.getName()).setValue(g);
     }
 
     @Override
@@ -368,6 +369,7 @@ public class MainActivity extends AppCompatActivity
         });
 
 
+
         for (Map.Entry<String, LatLng> entry : Constants.BAY_AREA_LANDMARKS.entrySet()) {
 
             mGeofenceList.add(new Geofence.Builder()
@@ -563,6 +565,7 @@ public class MainActivity extends AppCompatActivity
                             getSupportFragmentManager().
                                     beginTransaction().
                                     replace(R.id.bottomContainer, new UserGateListFragment()).
+                                    addToBackStack("UserGateListFragment").
                                     commit();
 
                         }else {
@@ -570,6 +573,7 @@ public class MainActivity extends AppCompatActivity
                             getSupportFragmentManager().
                                     beginTransaction().
                                     replace(R.id.bottomContainer, new NoGateFragment()).
+                                    addToBackStack("NoGateFragment").
                                     commit();
                         }
                     }
